@@ -1,0 +1,67 @@
+<!-- test-io-client.html -->
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script>
+
+  function init() {
+    output = document.getElementById("output");
+    testSocket();
+  }
+
+  function testSocket() {
+    var socket = io.connect('http://localhost:3000/meeting/ABC123');
+    socket.on('message', onMessage);
+    socket.on('question', onQuestion);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('connect_error', onError);
+    socket.on('reconnect_error', onError);
+
+    function onConnect(evt) {
+      writeToScreen("CONNECTED");
+      const response = 'Why hello there!';
+      doSend(response);
+      console.log(`Sent: ${response}`);
+    }
+
+    function onDisconnect(evt) {
+      writeToScreen("DISCONNECTED");
+    }
+
+    function onMessage(data) {
+      writeToScreen('<span style="color: blue;">RESPONSE: ' + data + '</span>');
+      //socket.close();
+      console.log(`Received: ${data}`);
+    }
+
+    function onQuestion(question, answer) {
+      writeToScreen('<span style="color: blue;">RESPONSE: ' + question.content + '</span>');
+      console.log(`Received: ${question.content} with a type of ${question.type}`);
+      const promptedA = prompt(question.content);
+      answer(promptedA);
+      console.log(`Responded with: ${promptedA}`);
+      writeToScreen(`<span style="color: blue;">SENT: ${promptedA}</span>`);
+    }
+
+    function onError(message) {
+      writeToScreen('<span style="color: red;">ERROR:</span> ' + message);
+    }
+
+    function doSend(message) {
+      writeToScreen("SENT: " + message);
+      socket.emit('message', message);
+    }
+
+    function writeToScreen(message) {
+      var pre = document.createElement("p");
+      pre.style.wordWrap = "break-word";
+      pre.innerHTML = message;
+      output.appendChild(pre);
+    }
+  }
+
+  window.addEventListener("load", init, false);
+</script>
+
+<h2>Socket.io Test</h2>
+
+<div id="output"></div>
